@@ -1,0 +1,21 @@
+server:
+  port: 9999
+
+spring:
+  application:
+    name: springcloud-eureka-client
+
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://zytech:zytech2018@localhost:8081/eureka
+    #eureka.client.healthcheck.enabled=true should only be set in application.yml. Setting the value in bootstrap.yml
+    healthcheck:
+      enabled: true
+    register-with-eureka: true
+    registry-fetch-interval-seconds: 5 # 每隔5秒重新从服务端获取最新列表数据，生产环境不推荐修改，默认30s
+  instance:
+    prefer-ip-address: true
+    lease-expiration-duration-in-seconds: 10 #服务失效时间，即10秒没有发送心跳，就当服务失效了。默认90s，生产环境不推荐修改
+    lease-renewal-interval-in-seconds: 5 #服务续约间隔，即服务发送心跳时间，默认30s，生产环境不推荐修改
