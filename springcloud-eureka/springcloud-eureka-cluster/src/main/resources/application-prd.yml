@@ -1,0 +1,46 @@
+server:
+  port: 8081
+
+
+spring:
+  security:
+    user:
+      name: zytech
+      password: zytech2018
+
+---
+spring:
+  profiles: peer1
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    registerWithEureka: false
+    fetchRegistry: false
+    serviceUrl:
+      defaultZone: http://${spring.security.user.name}:${spring.security.user.password}@localhost:8082/eureka/,http://${spring.security.user.name}:${spring.security.user.password}@localhost:8083/eureka/
+
+---
+spring:
+  profiles: peer2
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    registerWithEureka: false
+    fetchRegistry: false
+    serviceUrl:
+      defaultZone: http://${spring.security.user.name}:${spring.security.user.password}@localhost:8081/eureka/,http://${spring.security.user.name}:${spring.security.user.password}@localhost:8083/eureka/
+
+---
+spring:
+  profiles: peer3
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    registerWithEureka: false
+    fetchRegistry: false
+    serviceUrl:
+      defaultZone: http://${spring.security.user.name}:${spring.security.user.password}@localhost:8081/eureka/,http://${spring.security.user.name}:${spring.security.user.password}@localhost:8082/eureka/
+

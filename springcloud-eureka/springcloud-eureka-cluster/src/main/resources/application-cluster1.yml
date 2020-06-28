@@ -1,0 +1,16 @@
+server:
+  port: 8081
+
+
+spring:
+  security:
+    user:
+      name: zytech
+      password: zytech2018
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    serviceUrl:
+      defaultZone: http://${spring.security.user.name}:${spring.security.user.password}@127.0.0.1:8082/eureka/,http://${spring.security.user.name}:${spring.security.user.password}@127.0.0.1:8083/eureka/

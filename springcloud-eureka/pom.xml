@@ -18,6 +18,7 @@
         <module>springcloud-eureka-customer</module>
         <module>springcloud-eureka-service</module>
         <module>springcloud-product-service</module>
+        <module>springcloud-eureka-cluster</module>
     </modules>
 
 
