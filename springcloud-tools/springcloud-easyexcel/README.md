@@ -20,8 +20,6 @@
 
 ## EasyExcel读
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
-
 ### 最简单的读
 
 #### 如下excel示例
@@ -192,25 +190,289 @@ public class EasyExcelReadTest extends BaseTest {
 
 ### index以及name使用
 
-当把Excel中的数据，映射为实体的时候，
+当把Excel中的数据，映射为实体的时候，默认情况下，实体中的属性和Excel表头一一对应，如果实体中的属性顺序
+和Excel中不一致的时候，那么EasyExcel在解析数据的时候，可能会报错。
 
+如何去指定实体属性和Excel一一对应？
+
+在实体属性中添加@ExcelProperty注解，通过index或者name去一一对应。
+ @ExcelProperty("字符串标题") 或者  @ExcelProperty(index = 2) 这里推荐使用index去匹配。
 
 ```
-Give the example
+@Data
+public class DemoData {
+
+    /**
+     * 日期
+     */
+    @ExcelProperty(index = 1)
+    private Date date;
+
+    /**
+     * 数字
+     */
+    @ExcelProperty(index = 2)
+    private Double doubleData;
+
+    /**
+     * 文本
+     */
+    @ExcelProperty(index = 0)
+    private String text;
+}
 ```
 
 ### 读取多个sheet
 
+一个Excel中，可能会有多个sheet，那么如何读取指定的sheet或者全部的sheet?
+
+如下图所示的Excel,两个sheet:
+![avatar](https://github.com/KINGLBT/springcloud-parent/blob/master/image/springcloud-tools/springcloud-easyexcel/1-sheet1.png)
+![avatar](https://github.com/KINGLBT/springcloud-parent/blob/master/image/springcloud-tools/springcloud-easyexcel/1-sheet2.png)
+
+
+#### 读取全部的sheet
+
+这种情况适用于，**Excel中所有sheet中的数据格式一致**。
+
+注意：
+
+**监听器中的public void doAfterAllAnalysed(AnalysisContext context);方法，触发的条件是每个
+sheet处理完成之后去执行的。此时每次执行完成sheet之后，就需要讲list清空，防止重复处理**
+
+
+未清空list的代码:
+
 ```
-until finished
+@Override
+public void doAfterAllAnalysed(AnalysisContext context) {
+    // 这里也要保存数据，确保最后遗留的数据也存储到数据库
+    saveData();
+    log.info("所有数据解析完成！");
+}
 ```
 
-End with an example of getting some data out of the system or using it for a little demo
+```
+@Test
+public void readAllSheet() throws FileNotFoundException {
+    File file = ResourceUtils.getFile("classpath:demo.xlsx");
+    // 批量插入的话，如果想实现事务的话，将下面的代码放入一个事务中
+    EasyExcel.read(file, DemoData.class, new DemoDataBatchListener(demoDataService)).doReadAll();
+}
+```
 
+运行结果：
+
+从图片中发现，数据有重复处理情况，所以，**每处理完成一个sheet，一定要把前一个sheet写入的集合清空，防止重复处理**
+
+![avatar](https://github.com/KINGLBT/springcloud-parent/blob/master/image/springcloud-tools/springcloud-easyexcel/1-重复处理.png)
+
+清空list的代码:
+
+```
+@Override
+public void doAfterAllAnalysed(AnalysisContext context) {
+    // 这里也要保存数据，确保最后遗留的数据也存储到数据库
+    saveData();
+    log.info("所有数据解析完成！");
+    // 存储完成清理 list
+    resultList.clear();
+}
+```
+
+```
+@Test
+public void readAllSheet() throws FileNotFoundException {
+    File file = ResourceUtils.getFile("classpath:demo.xlsx");
+    // 批量插入的话，如果想实现事务的话，将下面的代码放入一个事务中
+    EasyExcel.read(file, DemoData.class, new DemoDataBatchAllSheetListener(demoDataService)).doReadAll();
+}
+```
+
+#### 读取部分的sheet
+
+这种情况适用于，**Excel中sheet中的数据格式不一致**、**只读取某几个sheet**
+
+
+
+```
+@Test
+public void partSheet() throws FileNotFoundException {
+    File file = ResourceUtils.getFile("classpath:demo.xlsx");
+    // 批量插入的话，如果想实现事务的话，将下面的代码放入一个事务中
+    ExcelReader excelReader = null;
+    try {
+        excelReader = EasyExcel.read(file).build();
+
+        // 这里为了简单 所以注册了 同样的head 和Listener 自己使用功能必须不同的Listener
+        ReadSheet readSheet1 =  EasyExcel.readSheet(0).head(DemoData.class).registerReadListener(new DemoDataBatchListener(demoDataService)).build();
+        ReadSheet readSheet2 =  EasyExcel.readSheet(1).head(DemoData.class).registerReadListener(new DemoDataBatchListener(demoDataService)).build();
+        // 这里注意 一定要把sheet1 sheet2 一起传进去，不然有个问题就是03版的excel 会读取多次，浪费性能
+        excelReader.read(readSheet1, readSheet2);
+    } finally {
+        if (excelReader != null) {
+            // 这里千万别忘记关闭，读的时候会创建临时文件，到时磁盘会崩的
+            excelReader.finish();
+        }
+    }
+}
+```
 
 ### 日期、数字或者自定义格式转换
 
+#### 日期格式化
+
+1、将Excel中的日期按照指定格式转化成实体中的字符串
+
+```
+@Data
+public class ConverterData {
+
+    /**
+     * 日期
+     */
+    @ExcelProperty(index = 1)
+    @DateTimeFormat("yyyy年MM月dd日HH时mm分ss秒")
+    private String date;
+
+    /**
+     * 数字
+     */
+    @ExcelProperty(index = 2)
+    private Double doubleData;
+
+    /**
+     * 文本
+     */
+    @ExcelProperty(index = 0)
+    private String text;
+}
+```
+
+#### 自定义格式化器
+
+1.自定义格式化器支持哪些Excel数据格式？
+
+CellDataTypeEnum 枚举值中的值，都支持
+
+2.如何使用？
+
+2.1 实现Converter接口
+
+2.2 指定要格式化的Excel格式以及格式化之后的Java数据格式
+
+```
+    /**
+     * 返回数据在java中的类型
+     *
+     */
+    Class supportJavaTypeKey();
+
+    /**
+     * 返回数据在Excel中的数据格式
+     *
+     */
+    CellDataTypeEnum supportExcelTypeKey();
+```
+
+2.3 实现格式化方法
+
+```
+
+/**
+ * 转化excel对象到java对象
+ */
+T convertToJavaData(CellData cellData, ExcelContentProperty contentProperty,
+        GlobalConfiguration globalConfiguration) throws Exception;
+```
+
+2.4 代码
+
+```
+
+public class CustomStringStringConverter implements Converter<String> {
+
+    @Override
+    public Class supportJavaTypeKey() {
+        return String.class;
+    }
+
+    @Override
+    public CellDataTypeEnum supportExcelTypeKey() {
+        return CellDataTypeEnum.STRING;
+    }
+
+    /**
+     * 这里读的时候会调用,将Excel中的数据格式化成Java中需要的格式
+     *
+     * @param cellData
+     * @param contentProperty
+     * @param globalConfiguration
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public String convertToJavaData(CellData cellData, ExcelContentProperty contentProperty, GlobalConfiguration globalConfiguration) throws Exception {
+        return "自定义：" + cellData.getStringValue();
+    }
+
+    /**
+     * 这里是写的时候会调用,将Java中的数据格式化成为Excel中想要的格式
+     *
+     * @param value
+     * @param contentProperty
+     * @param globalConfiguration
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public CellData convertToExcelData(String value, ExcelContentProperty contentProperty, GlobalConfiguration globalConfiguration) throws Exception {
+        return new CellData(value);
+    }
+}
+
+```
+
+#### 使用自定义格式化器
+
+1、将自定义格式化器使用到整个Excel
+
+如下所示：ConverterData2 对象中，所有的String都会被格式化
+
+```
+@Test
+    public void converDataWithRegisterConverter() throws FileNotFoundException {
+        File file = ResourceUtils.getFile("classpath:demo2.xlsx");
+        // 指定全局的自定义过滤器
+        EasyExcel.read(file, ConverterData2.class, new ConverterDataListener(demoDataService)).registerConverter(new CustomStringStringConverter()).sheet().doRead();
+
+    }
+```
+
+2、只有Excel中指定的字段需要使用自定义格式转化器
+
+```
+@ExcelProperty(index = 0,converter = CustomStringStringConverter.class)
+private String text;
+```
+
 ### 行头设置，标识前几行是表头
+
+在解析Excel的时候，可能会有多行是行头，这种情况下，我们希望不去解析行头，EasyExcel中，可以通过
+设置headRowNumber来进行过滤
+
+```
+    @Test
+    public void complexHeaderRead() throws FileNotFoundException {
+        File file = ResourceUtils.getFile("classpath:demo2.xlsx");
+        // 这里 需要指定读用哪个class去读，然后读取第一个sheet
+        EasyExcel.read(file, DemoData.class, new DemoDataListener(demoDataService)).sheet()
+                // 这里可以设置1，因为头就是一行。如果多行头，可以设置其他值。不传入也可以，因为默认会根据DemoData 来解析，他没有指定头，也就是默认1行
+                .headRowNumber(1).doRead();
+    }
+```
+
+
 
 ### 同步操作返回
 

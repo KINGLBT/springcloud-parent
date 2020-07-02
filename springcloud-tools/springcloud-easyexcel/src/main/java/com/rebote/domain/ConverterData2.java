@@ -2,9 +2,8 @@ package com.rebote.domain;
 
 
 import com.alibaba.excel.annotation.ExcelProperty;
+import com.alibaba.excel.annotation.format.DateTimeFormat;
 import lombok.Data;
-
-import java.util.Date;
 
 /**
  * @ClassName: DemoData
@@ -13,13 +12,14 @@ import java.util.Date;
  * @time: 2020/7/1 11:35
  */
 @Data
-public class DemoData {
+public class ConverterData2 {
 
     /**
      * 日期
      */
     @ExcelProperty(index = 1)
-    private Date date;
+    @DateTimeFormat("yyyy年MM月dd日HH时mm分ss秒")
+    private String date;
 
     /**
      * 数字
@@ -30,6 +30,10 @@ public class DemoData {
     /**
      * 文本
      */
-    @ExcelProperty(index = 0)
     private String text;
+
+    /**
+     * 文本
+     */
+    private String text2;
 }
