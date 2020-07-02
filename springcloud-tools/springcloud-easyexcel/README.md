@@ -478,6 +478,38 @@ private String text;
 
 ### 读取表头数据
 
+```
+@Slf4j
+public class DemoDataListener extends AnalysisEventListener<DemoData> {
+
+    List<DemoData> resultList = new ArrayList<>();
+
+    private DemoDataService demoDataService;
+
+    public DemoDataListener(DemoDataService demoDataService) {
+        this.demoDataService = demoDataService;
+    }
+
+    @Override
+    public void invoke(DemoData data, AnalysisContext context) {
+        // 每解析完一行数据之后，都会调用该方法
+        resultList.add(data);
+    }
+
+    @Override
+    public void doAfterAllAnalysed(AnalysisContext context) {
+        // 解析完所有的数据之后，会调用该方法
+        demoDataService.insertBatch(resultList);
+    }
+
+    @Override
+    public void invokeHead(Map<Integer, CellData> headMap, AnalysisContext context) {
+        // 解析表头的时候，会调用该方法
+        log.info("解析到一条头数据:{}", FastJsonUtils.getBeanToJson(headMap));
+    }
+}
+```
+
 ### 额外信息（批注、超链接、合并单元格信息读取）
 
 ### 数据转换等异常处理
