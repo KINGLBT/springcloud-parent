@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: 数据处理业务逻辑层
@@ -36,5 +37,11 @@ public class DemoDataServiceImpl implements DemoDataService {
     public void insertBatchConverData2(List<ConverterData2> list) {
         // TODO数据库持久层
         log.info("insertBatchConverData:{}", FastJsonUtils.getBeanToJson(list));
+    }
+
+    @Override
+    public void insertBatchMap(List<Map<Integer, String>> list) {
+        // TODO数据库持久层
+        log.info("insertBatchMap:{}", FastJsonUtils.getBeanToJson(list));
     }
 }

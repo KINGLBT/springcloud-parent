@@ -111,4 +111,33 @@ public class EasyExcelReadTest extends BaseTest {
     }
 
 
+    /**
+     * 数据转换等异常处理
+     *
+     * <p>
+     * 1. 创建excel对应的实体对象 参照{@link ExceptionDemoData}
+     * <p>
+     * 2. 由于默认一行行的读取excel，所以需要创建excel一行一行的回调监听器，参照{@link DemoExceptionListener}
+     * <p>
+     * 3. 直接读即可
+     */
+    @Test
+    public void exceptionRead() throws FileNotFoundException {
+        File file = ResourceUtils.getFile("classpath:error.xlsx");
+        // 这里 需要指定读用哪个class去读，然后读取第一个sheet
+        EasyExcel.read(file, DemoData.class, new DemoDataBatchListener(demoDataService)).sheet().doRead();
+    }
+
+
+    /**
+     * 不创建对象的读
+     */
+    @Test
+    public void noModelRead() throws FileNotFoundException {
+        File file = ResourceUtils.getFile("classpath:demo.xlsx");
+        // 这里 只要，然后读取第一个sheet 同步读取会自动finish
+        EasyExcel.read(file, new NoModelDataListener(demoDataService)).registerConverter(new CustomStringStringConverter()).sheet().doRead();
+    }
+
+
 }

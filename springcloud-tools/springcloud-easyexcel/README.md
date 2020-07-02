@@ -1,5 +1,6 @@
 # EasyExcel学习笔记
 
+
 * [EasyExcel学习笔记](#easyexcel%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0)
   * [EasyExcel读](#easyexcel%E8%AF%BB)
     * [最简单的读](#%E6%9C%80%E7%AE%80%E5%8D%95%E7%9A%84%E8%AF%BB)
@@ -9,14 +10,20 @@
       * [代码](#%E4%BB%A3%E7%A0%81)
     * [index以及name使用](#index%E4%BB%A5%E5%8F%8Aname%E4%BD%BF%E7%94%A8)
     * [读取多个sheet](#%E8%AF%BB%E5%8F%96%E5%A4%9A%E4%B8%AAsheet)
+      * [读取全部的sheet](#%E8%AF%BB%E5%8F%96%E5%85%A8%E9%83%A8%E7%9A%84sheet)
+      * [读取部分的sheet](#%E8%AF%BB%E5%8F%96%E9%83%A8%E5%88%86%E7%9A%84sheet)
     * [日期、数字或者自定义格式转换](#%E6%97%A5%E6%9C%9F%E6%95%B0%E5%AD%97%E6%88%96%E8%80%85%E8%87%AA%E5%AE%9A%E4%B9%89%E6%A0%BC%E5%BC%8F%E8%BD%AC%E6%8D%A2)
+      * [日期格式化](#%E6%97%A5%E6%9C%9F%E6%A0%BC%E5%BC%8F%E5%8C%96)
+      * [自定义格式化器](#%E8%87%AA%E5%AE%9A%E4%B9%89%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%99%A8)
+      * [使用自定义格式化器](#%E4%BD%BF%E7%94%A8%E8%87%AA%E5%AE%9A%E4%B9%89%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%99%A8)
     * [行头设置，标识前几行是表头](#%E8%A1%8C%E5%A4%B4%E8%AE%BE%E7%BD%AE%E6%A0%87%E8%AF%86%E5%89%8D%E5%87%A0%E8%A1%8C%E6%98%AF%E8%A1%A8%E5%A4%B4)
     * [同步操作返回](#%E5%90%8C%E6%AD%A5%E6%93%8D%E4%BD%9C%E8%BF%94%E5%9B%9E)
     * [读取表头数据](#%E8%AF%BB%E5%8F%96%E8%A1%A8%E5%A4%B4%E6%95%B0%E6%8D%AE)
     * [额外信息（批注、超链接、合并单元格信息读取）](#%E9%A2%9D%E5%A4%96%E4%BF%A1%E6%81%AF%E6%89%B9%E6%B3%A8%E8%B6%85%E9%93%BE%E6%8E%A5%E5%90%88%E5%B9%B6%E5%8D%95%E5%85%83%E6%A0%BC%E4%BF%A1%E6%81%AF%E8%AF%BB%E5%8F%96)
     * [数据转换等异常处理](#%E6%95%B0%E6%8D%AE%E8%BD%AC%E6%8D%A2%E7%AD%89%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86)
     * [不创建对象读](#%E4%B8%8D%E5%88%9B%E5%BB%BA%E5%AF%B9%E8%B1%A1%E8%AF%BB)
-    * [web中，上传文件读取](#web%E4%B8%AD%E4%B8%8A%E4%BC%A0%E6%96%87%E4%BB%B6%E8%AF%BB%E5%8F%96)
+    * [web中，上传文件读取Excel](#web%E4%B8%AD%E4%B8%8A%E4%BC%A0%E6%96%87%E4%BB%B6%E8%AF%BB%E5%8F%96excel)
+      * [上传controller实现](#%E4%B8%8A%E4%BC%A0controller%E5%AE%9E%E7%8E%B0)
 
 ## EasyExcel读
 
@@ -478,10 +485,175 @@ private String text;
 
 ### 读取表头数据
 
+```
+@Slf4j
+public class DemoDataListener extends AnalysisEventListener<DemoData> {
+
+    List<DemoData> resultList = new ArrayList<>();
+
+    private DemoDataService demoDataService;
+
+    public DemoDataListener(DemoDataService demoDataService) {
+        this.demoDataService = demoDataService;
+    }
+
+    @Override
+    public void invoke(DemoData data, AnalysisContext context) {
+        // 每解析完一行数据之后，都会调用该方法
+        resultList.add(data);
+    }
+
+    @Override
+    public void doAfterAllAnalysed(AnalysisContext context) {
+        // 解析完所有的数据之后，会调用该方法
+        demoDataService.insertBatch(resultList);
+    }
+
+    @Override
+    public void invokeHead(Map<Integer, CellData> headMap, AnalysisContext context) {
+        // 解析表头的时候，会调用该方法
+        log.info("解析到一条头数据:{}", FastJsonUtils.getBeanToJson(headMap));
+    }
+}
+```
+
 ### 额外信息（批注、超链接、合并单元格信息读取）
 
 ### 数据转换等异常处理
 
+在Excel中，可能存在某写行的数据有问题，这个时候，想跳过不进行处理，可以使用EasyExcle中的public void onException(Exception exception, AnalysisContext context)
+进行处理
+
+```
+    @Override
+    public void onException(Exception exception, AnalysisContext context) throws Exception {
+        log.error("解析失败，但是继续解析下一行:{}", exception.getMessage());
+        // 如果是某一个单元格的转换异常 能获取到具体行号
+        // 如果要获取头的信息 配合invokeHeadMap使用
+        if (exception instanceof ExcelDataConvertException) {
+            ExcelDataConvertException excelDataConvertException = (ExcelDataConvertException)exception;
+            log.error("第{}行，第{}列解析异常", excelDataConvertException.getRowIndex(),
+                    excelDataConvertException.getColumnIndex());
+        }
+
+    }
+```
+
+
 ### 不创建对象读
 
-### web中，上传文件读取
+在使用EasyExcle的时候，你可能想偷懒，不想去创建实体类去映射Excel中的数据，如果不指定映射对象的情况下，默认
+会把Excel中的每一行数据映射为一个Map<Integer,String>。map中的key为Excel中一行数的列号，value为单元格的值
+
+1、不创建对象读情况下的监视器
+
+```
+@Slf4j
+public class NoModelDataListener extends AnalysisEventListener<Map<Integer, String>> {
+
+    /**
+     * 每隔5条存储数据库，实际使用中可以3000条，然后清理list ，方便内存回收
+     */
+    private static final int BATCH_COUNT = 5;
+    List<Map<Integer, String>> list = new ArrayList<Map<Integer, String>>();
+
+    private DemoDataService demoDataService;
+
+    public NoModelDataListener(DemoDataService demoDataService) {
+        this.demoDataService = demoDataService;
+    }
+
+    @Override
+    public void invoke(Map<Integer, String> data, AnalysisContext context) {
+        log.info("解析到一条数据:{}", FastJsonUtils.getBeanToJson(data));
+        list.add(data);
+        if (list.size() >= BATCH_COUNT) {
+            saveData();
+            list.clear();
+        }
+    }
+
+    @Override
+    public void doAfterAllAnalysed(AnalysisContext context) {
+        // 这里也要保存数据，确保最后遗留的数据也存储到数据库
+        saveData();
+        log.info("所有数据解析完成！");
+    }
+
+    /**
+     * 加上存储数据库
+     */
+    private void saveData() {
+        //log.info("{}条数据，开始存储数据库！", resultList.size());
+        demoDataService.insertBatchMap(list);
+        //log.info("存储数据库成功！");
+    }
+}
+```
+
+2、代码
+
+```
+
+@Test
+    public void noModelRead() throws FileNotFoundException {
+        File file = ResourceUtils.getFile("classpath:demo.xlsx");
+        // 这里 只要，然后读取第一个sheet 同步读取会自动finish
+        EasyExcel.read(file, new NoModelDataListener(demoDataService)).sheet().doRead();
+    }
+
+```
+
+3、不创建对象的情况下，只能使用全局注册自定义格式器
+
+
+```
+/**
+     * 不创建对象的读
+     */
+    @Test
+    public void noModelRead() throws FileNotFoundException {
+        File file = ResourceUtils.getFile("classpath:demo.xlsx");
+        // 这里 只要，然后读取第一个sheet 同步读取会自动finish
+        EasyExcel.read(file, new NoModelDataListener(demoDataService)).registerConverter(new CustomStringStringConverter()).sheet().doRead();
+    }
+
+```
+**使用这种不创建对象解析Excel的方式，在拦截器的使用上有些麻烦**
+**使用这种不创建对象解析Excel的方式，持久化到数据库层，处理Map不如处理对象方便快捷**
+
+### web中，上传文件读取Excel
+
+
+#### 上传controller实现
+
+
+
+```
+@Controller
+@Slf4j
+public class EasyExcelController {
+
+    @Autowired
+    private DemoDataService demoDataService;
+
+
+    /**
+     * 文件上传
+     * <p>
+     * 1. 创建excel对应的实体对象 参照{@link UploadData}
+     * <p>
+     * 2. 由于默认一行行的读取excel，所以需要创建excel一行一行的回调监听器，参照{@link UploadDataListener}
+     * <p>
+     * 3. 直接读即可
+     */
+    @PostMapping("upload")
+    @ResponseBody
+    public String upload(MultipartFile file) throws IOException {
+        EasyExcel.read(file.getInputStream(), DemoData.class, new DemoDataListener(demoDataService)).sheet().doRead();
+        return "success";
+    }
+
+
+}
+```

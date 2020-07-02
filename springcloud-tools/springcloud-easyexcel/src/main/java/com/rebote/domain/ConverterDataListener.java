@@ -2,7 +2,9 @@ package com.rebote.domain;
 
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
+import com.alibaba.excel.exception.ExcelDataConvertException;
 import com.rebote.service.DemoDataService;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +15,7 @@ import java.util.List;
  * @author: luomeng
  * @time: 2020/7/1 11:42
  */
+@Slf4j
 public class ConverterDataListener extends AnalysisEventListener<ConverterData2> {
 
     List<ConverterData2> resultList = new ArrayList<>();
@@ -34,4 +37,5 @@ public class ConverterDataListener extends AnalysisEventListener<ConverterData2>
         // 解析完所有的数据之后，会调用该方法
         demoDataService.insertBatchConverData2(resultList);
     }
+
 }
