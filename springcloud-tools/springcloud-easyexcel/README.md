@@ -458,6 +458,22 @@ private String text;
 
 ### 行头设置，标识前几行是表头
 
+在解析Excel的时候，可能会有多行是行头，这种情况下，我们希望不去解析行头，EasyExcel中，可以通过
+设置headRowNumber来进行过滤
+
+```
+    @Test
+    public void complexHeaderRead() throws FileNotFoundException {
+        File file = ResourceUtils.getFile("classpath:demo2.xlsx");
+        // 这里 需要指定读用哪个class去读，然后读取第一个sheet
+        EasyExcel.read(file, DemoData.class, new DemoDataListener(demoDataService)).sheet()
+                // 这里可以设置1，因为头就是一行。如果多行头，可以设置其他值。不传入也可以，因为默认会根据DemoData 来解析，他没有指定头，也就是默认1行
+                .headRowNumber(1).doRead();
+    }
+```
+
+
+
 ### 同步操作返回
 
 ### 读取表头数据
