@@ -10,11 +10,67 @@ These instructions will get you a copy of the project up and running on your loc
 
 #### 如下excel示例
 
-![avatar](http://baidu.com/pic/doge.png)
+![avatar](https://github.com/KINGLBT/springcloud-parent/blob/master/image/springcloud-tools/springcloud-easyexcel/1-excel.png)
+
+#### Excel表格数据实体映射
 
 ```
+@Data
+public class DemoData {
 
+    /**
+     * 文本
+     */
+    private String text;
+
+    /**
+     * 日期
+     */
+    private Date date;
+
+    /**
+     * 数字
+     */
+    private Double doubleData;
+
+}
 ```
+
+#### 监听器
+
+1、监听器的工作，主要是对Excel数据进行解析，里面常用的方法有以下两个：
+```
+// 每解析完一行数据会触发发一次
+public void invoke(DemoData data, AnalysisContext context);
+// 解析完所有的数据会去触发一次
+public void doAfterAllAnalysed(AnalysisContext context);
+```
+
+2、监听器获取所有的数据集合
+```
+public class DemoDataListener extends AnalysisEventListener<DemoData> {
+
+    List<DemoData> result = new ArrayList<>();
+
+    @Override
+    public void invoke(DemoData data, AnalysisContext context) {
+        // 每解析完一行数据之后，都会调用该方法
+        result.add(data);
+    }
+
+    @Override
+    public void doAfterAllAnalysed(AnalysisContext context) {
+        // 解析完所有的数据之后，会调用该方法
+        
+    }
+}
+```
+
+
+**有个很重要的点 DemoDataListener 不能被spring管理，要每次读取excel都要new,然后里面用到spring可以构造方法传进去**
+
+
+
 
 ### index以及name使用
 
