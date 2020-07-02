@@ -20,8 +20,6 @@
 
 ## EasyExcel读
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
-
 ### 最简单的读
 
 #### 如下excel示例
@@ -224,16 +222,101 @@ public class DemoData {
 }
 ```
 
-
-
 ### 读取多个sheet
 
+一个Excel中，可能会有多个sheet，那么如何读取指定的sheet或者全部的sheet?
+
+如下图所示的Excel,两个sheet:
+![avatar](https://github.com/KINGLBT/springcloud-parent/blob/master/image/springcloud-tools/springcloud-easyexcel/1-sheet1.png)
+![avatar](https://github.com/KINGLBT/springcloud-parent/blob/master/image/springcloud-tools/springcloud-easyexcel/1-sheet2.png)
+
+
+#### 读取全部的sheet
+
+这种情况适用于，**Excel中所有sheet中的数据格式一致**。
+
+注意：
+
+**监听器中的public void doAfterAllAnalysed(AnalysisContext context);方法，触发的条件是每个
+sheet处理完成之后去执行的。此时每次执行完成sheet之后，就需要讲list清空，防止重复处理**
+
+
+未清空list的代码:
+
 ```
-until finished
+@Override
+public void doAfterAllAnalysed(AnalysisContext context) {
+    // 这里也要保存数据，确保最后遗留的数据也存储到数据库
+    saveData();
+    log.info("所有数据解析完成！");
+}
 ```
 
-End with an example of getting some data out of the system or using it for a little demo
+```
+@Test
+public void readAllSheet() throws FileNotFoundException {
+    File file = ResourceUtils.getFile("classpath:demo.xlsx");
+    // 批量插入的话，如果想实现事务的话，将下面的代码放入一个事务中
+    EasyExcel.read(file, DemoData.class, new DemoDataBatchListener(demoDataService)).doReadAll();
+}
+```
 
+运行结果：
+
+从图片中发现，数据有重复处理情况，所以，**每处理完成一个sheet，一定要把前一个sheet写入的集合清空，防止重复处理**
+
+![avatar](https://github.com/KINGLBT/springcloud-parent/blob/master/image/springcloud-tools/springcloud-easyexcel/1-重复处理.png)
+
+清空list的代码:
+
+```
+@Override
+public void doAfterAllAnalysed(AnalysisContext context) {
+    // 这里也要保存数据，确保最后遗留的数据也存储到数据库
+    saveData();
+    log.info("所有数据解析完成！");
+    // 存储完成清理 list
+    resultList.clear();
+}
+```
+
+```
+@Test
+public void readAllSheet() throws FileNotFoundException {
+    File file = ResourceUtils.getFile("classpath:demo.xlsx");
+    // 批量插入的话，如果想实现事务的话，将下面的代码放入一个事务中
+    EasyExcel.read(file, DemoData.class, new DemoDataBatchAllSheetListener(demoDataService)).doReadAll();
+}
+```
+
+#### 读取部分的sheet
+
+这种情况适用于，**Excel中sheet中的数据格式不一致**、**只读取某几个sheet**
+
+
+
+```
+@Test
+public void partSheet() throws FileNotFoundException {
+    File file = ResourceUtils.getFile("classpath:demo.xlsx");
+    // 批量插入的话，如果想实现事务的话，将下面的代码放入一个事务中
+    ExcelReader excelReader = null;
+    try {
+        excelReader = EasyExcel.read(file).build();
+
+        // 这里为了简单 所以注册了 同样的head 和Listener 自己使用功能必须不同的Listener
+        ReadSheet readSheet1 =  EasyExcel.readSheet(0).head(DemoData.class).registerReadListener(new DemoDataBatchListener(demoDataService)).build();
+        ReadSheet readSheet2 =  EasyExcel.readSheet(1).head(DemoData.class).registerReadListener(new DemoDataBatchListener(demoDataService)).build();
+        // 这里注意 一定要把sheet1 sheet2 一起传进去，不然有个问题就是03版的excel 会读取多次，浪费性能
+        excelReader.read(readSheet1, readSheet2);
+    } finally {
+        if (excelReader != null) {
+            // 这里千万别忘记关闭，读的时候会创建临时文件，到时磁盘会崩的
+            excelReader.finish();
+        }
+    }
+}
+```
 
 ### 日期、数字或者自定义格式转换
 
