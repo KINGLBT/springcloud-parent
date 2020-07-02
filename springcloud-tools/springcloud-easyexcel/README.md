@@ -612,5 +612,41 @@ public class NoModelDataListener extends AnalysisEventListener<Map<Integer, Stri
     }
 
 ```
+**使用这种不创建对象解析Excel的方式，在拦截器的使用上有些麻烦**
+**使用这种不创建对象解析Excel的方式，持久化到数据库层，处理Map不如处理对象方便快捷**
 
-### web中，上传文件读取
+### web中，上传文件读取Excel
+
+
+#### 上传controller实现
+
+
+
+```
+@Controller
+@Slf4j
+public class EasyExcelController {
+
+    @Autowired
+    private DemoDataService demoDataService;
+
+
+    /**
+     * 文件上传
+     * <p>
+     * 1. 创建excel对应的实体对象 参照{@link UploadData}
+     * <p>
+     * 2. 由于默认一行行的读取excel，所以需要创建excel一行一行的回调监听器，参照{@link UploadDataListener}
+     * <p>
+     * 3. 直接读即可
+     */
+    @PostMapping("upload")
+    @ResponseBody
+    public String upload(MultipartFile file) throws IOException {
+        EasyExcel.read(file.getInputStream(), DemoData.class, new DemoDataListener(demoDataService)).sheet().doRead();
+        return "success";
+    }
+
+
+}
+```
