@@ -3,9 +3,7 @@ package com.rebote;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelReader;
 import com.alibaba.excel.read.metadata.ReadSheet;
-import com.rebote.domain.DemoData;
-import com.rebote.domain.DemoDataBatchAllSheetListener;
-import com.rebote.domain.DemoDataBatchListener;
+import com.rebote.domain.*;
 import com.rebote.service.DemoDataService;
 import com.rebote.utils.FastJsonUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -74,6 +72,25 @@ public class EasyExcelReadTest extends BaseTest {
                 excelReader.finish();
             }
         }
+    }
+
+    @Test
+    public void converData() throws FileNotFoundException {
+        File file = ResourceUtils.getFile("classpath:demo.xlsx");
+        // 批量插入的话，如果想实现事务的话，将下面的代码放入一个事务中
+        //EasyExcel.read(file, ConverterData.class, new ConverterDataListener(demoDataService)).sheet().doRead();
+
+        // 指定全局的自定义过滤器
+        EasyExcel.read(file, ConverterData.class, new ConverterDataListener(demoDataService)).registerConverter(new CustomStringStringConverter()).sheet().doRead();
+
+    }
+
+    @Test
+    public void converDataWithRegisterConverter() throws FileNotFoundException {
+        File file = ResourceUtils.getFile("classpath:demo2.xlsx");
+        // 指定全局的自定义过滤器
+        EasyExcel.read(file, ConverterData2.class, new ConverterDataListener(demoDataService)).registerConverter(new CustomStringStringConverter()).sheet().doRead();
+
     }
 
 
