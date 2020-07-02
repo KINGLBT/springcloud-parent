@@ -1,5 +1,6 @@
 # EasyExcel学习笔记
 
+
 * [EasyExcel学习笔记](#easyexcel%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0)
   * [EasyExcel读](#easyexcel%E8%AF%BB)
     * [最简单的读](#%E6%9C%80%E7%AE%80%E5%8D%95%E7%9A%84%E8%AF%BB)
@@ -9,14 +10,20 @@
       * [代码](#%E4%BB%A3%E7%A0%81)
     * [index以及name使用](#index%E4%BB%A5%E5%8F%8Aname%E4%BD%BF%E7%94%A8)
     * [读取多个sheet](#%E8%AF%BB%E5%8F%96%E5%A4%9A%E4%B8%AAsheet)
+      * [读取全部的sheet](#%E8%AF%BB%E5%8F%96%E5%85%A8%E9%83%A8%E7%9A%84sheet)
+      * [读取部分的sheet](#%E8%AF%BB%E5%8F%96%E9%83%A8%E5%88%86%E7%9A%84sheet)
     * [日期、数字或者自定义格式转换](#%E6%97%A5%E6%9C%9F%E6%95%B0%E5%AD%97%E6%88%96%E8%80%85%E8%87%AA%E5%AE%9A%E4%B9%89%E6%A0%BC%E5%BC%8F%E8%BD%AC%E6%8D%A2)
+      * [日期格式化](#%E6%97%A5%E6%9C%9F%E6%A0%BC%E5%BC%8F%E5%8C%96)
+      * [自定义格式化器](#%E8%87%AA%E5%AE%9A%E4%B9%89%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%99%A8)
+      * [使用自定义格式化器](#%E4%BD%BF%E7%94%A8%E8%87%AA%E5%AE%9A%E4%B9%89%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%99%A8)
     * [行头设置，标识前几行是表头](#%E8%A1%8C%E5%A4%B4%E8%AE%BE%E7%BD%AE%E6%A0%87%E8%AF%86%E5%89%8D%E5%87%A0%E8%A1%8C%E6%98%AF%E8%A1%A8%E5%A4%B4)
     * [同步操作返回](#%E5%90%8C%E6%AD%A5%E6%93%8D%E4%BD%9C%E8%BF%94%E5%9B%9E)
     * [读取表头数据](#%E8%AF%BB%E5%8F%96%E8%A1%A8%E5%A4%B4%E6%95%B0%E6%8D%AE)
     * [额外信息（批注、超链接、合并单元格信息读取）](#%E9%A2%9D%E5%A4%96%E4%BF%A1%E6%81%AF%E6%89%B9%E6%B3%A8%E8%B6%85%E9%93%BE%E6%8E%A5%E5%90%88%E5%B9%B6%E5%8D%95%E5%85%83%E6%A0%BC%E4%BF%A1%E6%81%AF%E8%AF%BB%E5%8F%96)
     * [数据转换等异常处理](#%E6%95%B0%E6%8D%AE%E8%BD%AC%E6%8D%A2%E7%AD%89%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86)
     * [不创建对象读](#%E4%B8%8D%E5%88%9B%E5%BB%BA%E5%AF%B9%E8%B1%A1%E8%AF%BB)
-    * [web中，上传文件读取](#web%E4%B8%AD%E4%B8%8A%E4%BC%A0%E6%96%87%E4%BB%B6%E8%AF%BB%E5%8F%96)
+    * [web中，上传文件读取Excel](#web%E4%B8%AD%E4%B8%8A%E4%BC%A0%E6%96%87%E4%BB%B6%E8%AF%BB%E5%8F%96excel)
+      * [上传controller实现](#%E4%B8%8A%E4%BC%A0controller%E5%AE%9E%E7%8E%B0)
 
 ## EasyExcel读
 
