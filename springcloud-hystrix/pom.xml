@@ -7,20 +7,9 @@
         <groupId>com.rebote</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-
-
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>springcloud-eureka</artifactId>
-    <packaging>pom</packaging>
-
-    <modules>
-        <module>springcloud-eureka-customer</module>
-        <module>springcloud-eureka-service</module>
-        <module>springcloud-product-service</module>
-        <module>springcloud-eureka-cluster</module>
-        <module>springcloud-order-service</module>
-    </modules>
+    <artifactId>springcloud-hystrix</artifactId>
 
 
 </project>
