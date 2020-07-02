@@ -13,16 +13,40 @@
         <java.version>1.8</java.version>
         <spring-boot.version>2.2.1.RELEASE</spring-boot.version>
         <spring-cloud.version>Hoxton.SR5</spring-cloud.version>
+        <easyexcel.version>2.2.6</easyexcel.version>
     </properties>
 
 
     <modules>
         <module>springcloud-eureka</module>
         <module>springcloud-security</module>
+        <module>springcloud-zookeeper</module>
+        <module>springcloud-ribbon</module>
+        <module>springcloud-hystrix</module>
+        <module>springcloud-tools</module>
     </modules>
 
     <dependencyManagement>
         <dependencies>
+            <!--easyexcel-->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>easyexcel</artifactId>
+                <version>2.2.6</version>
+            </dependency>
+            <!--lombok-->
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>1.16.18</version>
+                <scope>provided</scope>
+            </dependency>
+            <!-- fastjson -->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>1.2.56</version>
+            </dependency>
             <!--支持Spring Boot 2.1.X-->
             <dependency>
                 <!-- Import dependency management from Spring Boot -->
@@ -39,6 +63,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
         </dependencies>
     </dependencyManagement>
 
