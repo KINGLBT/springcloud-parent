@@ -128,4 +128,16 @@ public class EasyExcelReadTest extends BaseTest {
         EasyExcel.read(file, DemoData.class, new DemoDataBatchListener(demoDataService)).sheet().doRead();
     }
 
+
+    /**
+     * 不创建对象的读
+     */
+    @Test
+    public void noModelRead() throws FileNotFoundException {
+        File file = ResourceUtils.getFile("classpath:demo.xlsx");
+        // 这里 只要，然后读取第一个sheet 同步读取会自动finish
+        EasyExcel.read(file, new NoModelDataListener(demoDataService)).registerConverter(new CustomStringStringConverter()).sheet().doRead();
+    }
+
+
 }

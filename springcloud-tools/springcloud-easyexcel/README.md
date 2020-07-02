@@ -514,6 +514,103 @@ public class DemoDataListener extends AnalysisEventListener<DemoData> {
 
 ### 数据转换等异常处理
 
+在Excel中，可能存在某写行的数据有问题，这个时候，想跳过不进行处理，可以使用EasyExcle中的public void onException(Exception exception, AnalysisContext context)
+进行处理
+
+```
+    @Override
+    public void onException(Exception exception, AnalysisContext context) throws Exception {
+        log.error("解析失败，但是继续解析下一行:{}", exception.getMessage());
+        // 如果是某一个单元格的转换异常 能获取到具体行号
+        // 如果要获取头的信息 配合invokeHeadMap使用
+        if (exception instanceof ExcelDataConvertException) {
+            ExcelDataConvertException excelDataConvertException = (ExcelDataConvertException)exception;
+            log.error("第{}行，第{}列解析异常", excelDataConvertException.getRowIndex(),
+                    excelDataConvertException.getColumnIndex());
+        }
+
+    }
+```
+
+
 ### 不创建对象读
+
+在使用EasyExcle的时候，你可能想偷懒，不想去创建实体类去映射Excel中的数据，如果不指定映射对象的情况下，默认
+会把Excel中的每一行数据映射为一个Map<Integer,String>。map中的key为Excel中一行数的列号，value为单元格的值
+
+1、不创建对象读情况下的监视器
+
+```
+@Slf4j
+public class NoModelDataListener extends AnalysisEventListener<Map<Integer, String>> {
+
+    /**
+     * 每隔5条存储数据库，实际使用中可以3000条，然后清理list ，方便内存回收
+     */
+    private static final int BATCH_COUNT = 5;
+    List<Map<Integer, String>> list = new ArrayList<Map<Integer, String>>();
+
+    private DemoDataService demoDataService;
+
+    public NoModelDataListener(DemoDataService demoDataService) {
+        this.demoDataService = demoDataService;
+    }
+
+    @Override
+    public void invoke(Map<Integer, String> data, AnalysisContext context) {
+        log.info("解析到一条数据:{}", FastJsonUtils.getBeanToJson(data));
+        list.add(data);
+        if (list.size() >= BATCH_COUNT) {
+            saveData();
+            list.clear();
+        }
+    }
+
+    @Override
+    public void doAfterAllAnalysed(AnalysisContext context) {
+        // 这里也要保存数据，确保最后遗留的数据也存储到数据库
+        saveData();
+        log.info("所有数据解析完成！");
+    }
+
+    /**
+     * 加上存储数据库
+     */
+    private void saveData() {
+        //log.info("{}条数据，开始存储数据库！", resultList.size());
+        demoDataService.insertBatchMap(list);
+        //log.info("存储数据库成功！");
+    }
+}
+```
+
+2、代码
+
+```
+
+@Test
+    public void noModelRead() throws FileNotFoundException {
+        File file = ResourceUtils.getFile("classpath:demo.xlsx");
+        // 这里 只要，然后读取第一个sheet 同步读取会自动finish
+        EasyExcel.read(file, new NoModelDataListener(demoDataService)).sheet().doRead();
+    }
+
+```
+
+3、不创建对象的情况下，只能使用全局注册自定义格式器
+
+
+```
+/**
+     * 不创建对象的读
+     */
+    @Test
+    public void noModelRead() throws FileNotFoundException {
+        File file = ResourceUtils.getFile("classpath:demo.xlsx");
+        // 这里 只要，然后读取第一个sheet 同步读取会自动finish
+        EasyExcel.read(file, new NoModelDataListener(demoDataService)).registerConverter(new CustomStringStringConverter()).sheet().doRead();
+    }
+
+```
 
 ### web中，上传文件读取
