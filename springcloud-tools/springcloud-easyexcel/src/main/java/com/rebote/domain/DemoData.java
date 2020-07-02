@@ -1,6 +1,7 @@
 package com.rebote.domain;
 
 
+import com.alibaba.excel.annotation.ExcelProperty;
 import lombok.Data;
 
 import java.util.Date;
@@ -15,18 +16,20 @@ import java.util.Date;
 public class DemoData {
 
     /**
-     * 文本
-     */
-    private String text;
-
-    /**
      * 日期
      */
+    @ExcelProperty(index = 1)
     private Date date;
 
     /**
      * 数字
      */
+    @ExcelProperty(index = 2)
     private Double doubleData;
 
+    /**
+     * 文本
+     */
+    @ExcelProperty(index = 0)
+    private String text;
 }

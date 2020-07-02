@@ -192,12 +192,39 @@ public class EasyExcelReadTest extends BaseTest {
 
 ### index以及name使用
 
-当把Excel中的数据，映射为实体的时候，
+当把Excel中的数据，映射为实体的时候，默认情况下，实体中的属性和Excel表头一一对应，如果实体中的属性顺序
+和Excel中不一致的时候，那么EasyExcel在解析数据的时候，可能会报错。
 
+如何去指定实体属性和Excel一一对应？
+
+在实体属性中添加@ExcelProperty注解，通过index或者name去一一对应。
+ @ExcelProperty("字符串标题") 或者  @ExcelProperty(index = 2) 这里推荐使用index去匹配。
 
 ```
-Give the example
+@Data
+public class DemoData {
+
+    /**
+     * 日期
+     */
+    @ExcelProperty(index = 1)
+    private Date date;
+
+    /**
+     * 数字
+     */
+    @ExcelProperty(index = 2)
+    private Double doubleData;
+
+    /**
+     * 文本
+     */
+    @ExcelProperty(index = 0)
+    private String text;
+}
 ```
+
+
 
 ### 读取多个sheet
 
