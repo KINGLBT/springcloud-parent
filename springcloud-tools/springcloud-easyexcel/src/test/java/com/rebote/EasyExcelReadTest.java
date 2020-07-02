@@ -1,7 +1,6 @@
 package com.rebote;
 
 import com.alibaba.excel.EasyExcel;
-import com.alibaba.excel.ExcelReader;
 import com.rebote.domain.DemoData;
 import com.rebote.domain.DemoDataBatchListener;
 import com.rebote.service.DemoDataService;
@@ -29,7 +28,7 @@ public class EasyExcelReadTest extends BaseTest {
 
     @Test
     public void simpleRead() throws FileNotFoundException {
-        File file= ResourceUtils.getFile("classpath:demo.xlsx");
+        File file = ResourceUtils.getFile("classpath:demo.xlsx");
         // 同步获取Excel中的全部结果，转化成LinkedHashMap
         List result = EasyExcel.read(file).sheet().doReadSync();
         String jsonResult = FastJsonUtils.getBeanToJson(result);
@@ -39,10 +38,9 @@ public class EasyExcelReadTest extends BaseTest {
 
     @Test
     public void simpleReadAndSave() throws FileNotFoundException {
-        File file= ResourceUtils.getFile("classpath:demo.xlsx");
-        // 同步获取Excel中的全部结果，转化成LinkedHashMap
-        EasyExcel.read(file, DemoData.class,new DemoDataBatchListener(demoDataService)).sheet().doRead();
+        File file = ResourceUtils.getFile("classpath:demo.xlsx");
+        // 批量插入的话，如果想实现事务的话，将下面的代码放入一个事务中
+        EasyExcel.read(file, DemoData.class, new DemoDataBatchListener(demoDataService)).sheet().doRead();
     }
-
 
 }
