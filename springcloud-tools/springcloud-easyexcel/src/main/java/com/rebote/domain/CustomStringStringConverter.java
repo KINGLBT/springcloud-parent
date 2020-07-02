@@ -49,6 +49,6 @@ public class CustomStringStringConverter implements Converter<String> {
      */
     @Override
     public CellData convertToExcelData(String value, ExcelContentProperty contentProperty, GlobalConfiguration globalConfiguration) throws Exception {
-        return new CellData(value);
+        return new CellData("自定义："+value);
     }
 }

@@ -619,7 +619,9 @@ public class NoModelDataListener extends AnalysisEventListener<Map<Integer, Stri
     }
 
 ```
+
 **使用这种不创建对象解析Excel的方式，在拦截器的使用上有些麻烦**
+
 **使用这种不创建对象解析Excel的方式，持久化到数据库层，处理Map不如处理对象方便快捷**
 
 ### web中，上传文件读取Excel
@@ -657,3 +659,301 @@ public class EasyExcelController {
 
 }
 ```
+
+## EasyExcel写
+
+### 简单示例
+
+1、初始化数据，造假数据
+
+```
+@Before
+public void initData(){
+    for (int i = 0;i<=100;i++) {
+        DemoData demoData = new DemoData();
+        demoData.setDate(new Date());
+        demoData.setDoubleData(new Double(i));
+        demoData.setText("标题"+i);
+        list.add(demoData);
+    }
+}
+```
+
+2、创建与Excel数据映射的实体，主要包括导出Excel表头顺序、表头标题
+
+使用index指定写入哪一列、使用value指定表头名称
+
+```
+@ExcelProperty(value = "数字",index = 2)
+```
+
+```
+@Data
+public class DemoData {
+
+    /**
+     * 日期
+     */
+    @ExcelProperty(value = "日期",index = 1)
+    private Date date;
+
+    /**
+     * 数字
+     */
+    @ExcelProperty(value = "数字",index = 2)
+    private Double doubleData;
+
+    /**
+     * 文本
+     */
+    @ExcelProperty(value = "文本",index = 0)
+    private String text;
+}
+```
+
+3、代码
+
+```
+@Test
+public void simpleWrite() {
+    // 写法1
+    String fileName = System.currentTimeMillis() + ".xlsx";
+    // 这里 需要指定写用哪个class去写，然后写到第一个sheet，名字为模板 然后文件流会自动关闭
+    // 如果这里想使用03 则 传入excelType参数即可
+    EasyExcel.write(fileName, DemoData.class).sheet("模板").doWrite(list);
+}
+```
+
+### 对象中某个字段不导出
+
+实体中可能有些数据不想导出来，easyexcle可以通过在属性字段上加@ExcelIgnore注解，来忽略要导出的字段
+
+
+```
+@Data
+public class DemoData {
+
+    /**
+     * 日期
+     */
+    @ExcelProperty(value = "日期",index = 1)
+    private Date date;
+
+    /**
+     * 数字
+     */
+    @ExcelProperty(value = "数字",index = 2)
+    private Double doubleData;
+
+    /**
+     * 文本
+     */
+    @ExcelProperty(value = "文本",index = 0)
+    private String text;
+
+    /**
+     * 忽略这个字段
+     */
+    @ExcelIgnore
+    private String ignoreColumn;
+
+}
+```
+
+###  通过参数配置导出哪些列和排除哪些列
+
+1、easyexcle中可以通过excludeColumnFiledNames方法，设置忽略哪些属性列，不进行导出
+
+```
+@Test
+    public void excludeWrite() {
+        String fileName = System.currentTimeMillis() + ".xlsx";
+
+        // 根据用户传入字段 假设我们要忽略 date
+        Set<String> excludeColumnFiledNames = new HashSet<String>();
+        excludeColumnFiledNames.add("date");
+        // 这里 需要指定写用哪个class去写，然后写到第一个sheet，名字为模板 然后文件流会自动关闭
+        EasyExcel.write(fileName, DemoData.class).excludeColumnFiledNames(excludeColumnFiledNames).sheet("模板")
+                .doWrite(list);
+
+    }
+```
+
+2、easyexcle中可以通过includeColumnFiledNames方法，设置导出哪些属性列
+
+```
+@Test
+    public void includeWrite() {
+        String fileName = System.currentTimeMillis() + ".xlsx";
+
+        // 根据用户传入字段 假设我们只要导出 date
+        Set<String> includeColumnFiledNames = new HashSet<String>();
+        includeColumnFiledNames.add("date");
+        // 这里 需要指定写用哪个class去写，然后写到第一个sheet，名字为模板 然后文件流会自动关闭
+        EasyExcel.write(fileName, DemoData.class).includeColumnFiledNames(includeColumnFiledNames).sheet("模板")
+                .doWrite(list);
+    }
+```
+
+3、在采用includeColumnFiledNames或者excludeColumnFiledNames的时候，如果在对象属性上指定了index的话，那么可能会出现空列，
+index指定写入到Excel的第几列。假如有第一列、第二列、第三列，现在忽略index=1的列，那么Excel中index=1,也就是第二列就会是空的。
+如下图：
+
+![avatar](https://github.com/KINGLBT/springcloud-parent/blob/master/image/springcloud-tools/springcloud-easyexcel/1-空列.png)
+
+
+
+### 指定某个属性写入到哪个列
+
+所以，如果想不出现空列，可以不指定index，但是，导出的顺序，就是实体中字段的顺序
+
+
+
+
+
+可以通过在映射对象中设置index，指定写入哪一类
+
+```
+@ExcelProperty(value = "文本",index = 0)
+```
+
+### 重复多次写入(写到单个或者多个Sheet)
+
+#### 多次写入到单个Excel中
+
+有些情况下，数据量比较大，例如10W数据，一次性查询，数据库压力可能会很大，即使压力不大，一次性把10W数据放入List中，
+对服务器的内存要求也很高，这种情况下，就可能希望进行分页查询，然后多次写入到Excel中
+
+代码
+
+```
+@Test
+    public void repeatedWrite() {
+        // 方法1 如果写到同一个sheet
+        String fileName = System.currentTimeMillis() + ".xlsx";
+        ExcelWriter excelWriter = null;
+        try {
+            // 这里 需要指定写用哪个class去写
+            excelWriter = EasyExcel.write(fileName, DemoData.class).build();
+            // 这里注意 如果同一个sheet只要创建一次
+            WriteSheet writeSheet = EasyExcel.writerSheet("模板").build();
+            // 去调用写入,这里我调用了五次，实际使用时根据数据库分页的总的页数来
+            for (int i = 0; i < 5; i++) {
+                // 分页去数据库查询数据 这里可以去数据库查询每一页的数据
+                List<DemoData> data = list;
+                excelWriter.write(data, writeSheet);
+            }
+        } finally {
+            // 千万别忘记finish 会帮忙关闭流
+            if (excelWriter != null) {
+                excelWriter.finish();
+            }
+        }
+
+    }
+```
+
+#### 日期、数字或者自定义格式转换
+
+1、日期按照指定格式导出到Excel中
+
+```
+/**
+ * 我想写到excel 用年月日的格式
+ */
+ @DateTimeFormat("yyyy年MM月dd日HH时mm分ss秒")
+ @ExcelProperty("日期标题")
+ private Date date;
+```
+
+2、数字用百分比表示
+
+```
+/**
+* 我想写到excel 用百分比表示
+*/
+@NumberFormat("#.##%")
+@ExcelProperty(value = "数字标题")
+private Double doubleData;
+```
+
+3、自定义转化器
+
+自定义转化器在读取的时候有说明，可以参考读Excel
+
+```
+ /**
+ * 我想所有的 字符串起前面加上"自定义："三个字
+ */
+ @ExcelProperty(value = "字符串标题", converter = CustomStringStringConverter.class)
+ private String string;
+```
+
+#### 列宽、行高
+
+```
+@Data
+@ContentRowHeight(10)
+@HeadRowHeight(20)
+@ColumnWidth(25)
+public class WidthAndHeightData {
+    @ExcelProperty("字符串标题")
+    private String string;
+    @ExcelProperty("日期标题")
+    private Date date;
+    /**
+     * 宽度为50
+     */
+    @ColumnWidth(50)
+    @ExcelProperty("数字标题")
+    private Double doubleData;
+}
+```
+
+#### 动态头，实时生成头写入
+
+1、自定义表头方法
+
+```
+private List<List<String>> head() {
+    List<List<String>> list = new ArrayList<List<String>>();
+    List<String> head0 = new ArrayList<String>();
+    head0.add("字符串" + System.currentTimeMillis());
+    List<String> head1 = new ArrayList<String>();
+    head1.add("数字" + System.currentTimeMillis());
+    List<String> head2 = new ArrayList<String>();
+    head2.add("日期" + System.currentTimeMillis());
+    list.add(head0)
+    list.add(head1);
+    list.add(head2);
+    return list;
+}
+```
+
+2、设置表头
+
+```
+@Test
+public void dynamicHeadWrite() {
+    String fileName = System.currentTimeMillis() + ".xlsx";
+    EasyExcel.write(fileName)
+    // 这里放入动态头
+    .head(head()).sheet("模板")
+    // 当然这里数据也可以用 List<List<String>> 去传入
+    .doWrite(list);
+}
+```
+
+3、自定义表头的顺序，一定要和对象属性中的顺序一致，否则容易造成数据混乱了，如果非要不一致，最好指定index
+
+4、如果自定义表头的个数和对象属性中的个数不一致，例如对象中有多余的字段，那么多余的那一列，也会展示出来，不过不显示标题
+
+如下图所示：
+
+![avatar](https://github.com/KINGLBT/springcloud-parent/blob/master/image/springcloud-tools/springcloud-easyexcel/1-重复处理.png)
+
+
+
+## 填充Excel
+
+
