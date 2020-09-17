@@ -12,9 +12,9 @@
     <artifactId>springcloud-config</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>springcloud-config-server</module>
         <module>springcloud-config-client</module>
         <module>springcloud-config-server-http</module>
+        <module>springcloud-config-server-ssh</module>
     </modules>
 
 
