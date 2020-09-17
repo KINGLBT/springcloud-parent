@@ -1,9 +1,9 @@
 spring:
   application:
-    name: springcloud-config-client1
+    name: springcloud-config-client
   cloud:
     config:
-      uri: http://localhost:8811
+      uri: http://localhost:8089
       username: fykc
       password: 12321
 server:
