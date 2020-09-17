@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: springcloud-config-server-http
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://e.coding.net/lm-dashuai/{application}.git
+          skip-ssl-validation: true
+          timeout: 10
+          username: 认证用户名
+          password: 认证密码
+          force-pull: true
+          delete-untracked-branches: true
+          refresh-rate: 0
+        health:
+          enabled: false
+  security:
+    user:
+      name: fykc
+      password: 12321
+server:
+  port: 8089
