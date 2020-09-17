@@ -24,6 +24,7 @@
         <module>springcloud-ribbon</module>
         <module>springcloud-hystrix</module>
         <module>springcloud-tools</module>
+        <module>springcloud-config</module>
     </modules>
 
     <dependencyManagement>
