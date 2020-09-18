@@ -1,0 +1,4 @@
+encrypt:
+  key: abc
+logging:
+  config: classpath:logback-spring.xml

@@ -1,7 +1,8 @@
 encrypt:
   key-store:
-    location: classpath:fykc.jks
+    location: classpath:/fykc.jks
     password: fykc123
     alias: mytestkey
     secret: fykc123
-    type: jks
+logging:
+  config: classpath:logback-spring.xml
