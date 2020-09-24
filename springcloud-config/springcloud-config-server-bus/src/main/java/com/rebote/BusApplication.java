@@ -2,20 +2,21 @@ package com.rebote;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.context.scope.refresh.RefreshScope;
+import org.springframework.cloud.config.server.EnableConfigServer;
 
 /**
  * @ProjectName: springcloud-parent
  * @Package: com.rebote
- * @ClassName: ConfigClientApplication
+ * @ClassName: BusApplication
  * @Author: lmluo
- * @Description: 配置中心客户端
- * @Date: 2020/9/16 19:51
+ * @Description: bus消息总线
+ * @Date: 2020/9/23 20:42
  * @Version: 1.0
  */
 @SpringBootApplication
-public class ConfigClientApplication {
+@EnableConfigServer
+public class BusApplication {
     public static void main(String[] args) {
-        SpringApplication.run(ConfigClientApplication.class, args);
+        SpringApplication.run(BusApplication.class, args);
     }
 }

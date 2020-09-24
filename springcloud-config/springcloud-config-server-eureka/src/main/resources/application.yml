@@ -1,6 +1,6 @@
 spring:
   application:
-    name: springcloud-config-server-http
+    name: springcloud-config-server-eureka
   cloud:
     config:
       server:
@@ -13,10 +13,21 @@ spring:
           force-pull: true
           delete-untracked-branches: true
           refresh-rate: 0
+        health:
+          enabled: false
   security:
     user:
       name: fykc
       password: 12321
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://zytech:zytech2018@localhost:8081/eureka
+    #eureka.client.healthcheck.enabled=true should only be set in application.yml. Setting the value in bootstrap.yml
+    healthcheck:
+      enabled: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
 server:
-  port: 8089
-
+  port: 9977

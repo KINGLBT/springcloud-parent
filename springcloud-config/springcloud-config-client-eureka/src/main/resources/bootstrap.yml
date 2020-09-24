@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: springcloud-config-client
+  cloud:
+    config:
+      username: fykc
+      password: 12321
+      discovery:
+        enabled: true
+        service-id: springcloud-config-server-eureka
+server:
+  port: 8833
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://zytech:zytech2018@localhost:8081/eureka
+    #eureka.client.healthcheck.enabled=true should only be set in application.yml. Setting the value in bootstrap.yml
+    healthcheck:
+      enabled: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+logging:
+  config: classpath:logback-spring.xml

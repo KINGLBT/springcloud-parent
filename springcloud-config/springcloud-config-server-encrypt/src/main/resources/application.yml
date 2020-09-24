@@ -48,3 +48,8 @@ spring:
       password: 12321
 server:
   port: 8089
+management:
+  endpoints:
+    web:
+      exposure:
+        include: beans,info,health,env,httptrace

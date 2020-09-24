@@ -1,6 +1,6 @@
 spring:
   application:
-    name: springcloud-config-client
+    name: springcloud-stream-product
   cloud:
     config:
       uri: http://localhost:8089
@@ -8,8 +8,3 @@ spring:
       password: 12321
 server:
   port: 8808
-management:
-  endpoints:
-    web:
-      exposure:
-        include: refresh

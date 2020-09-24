@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: springcloud-config-server-bus
+server:
+  port: 8899
+encrypt:
+  key-store:
+    location: classpath:/fykc.jks
+    password: fykc123
+    alias: mytestkey
+    secret: fykc123
+logging:
+  config: classpath:logback-spring.xml

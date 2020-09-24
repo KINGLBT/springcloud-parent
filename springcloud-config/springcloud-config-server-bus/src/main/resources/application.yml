@@ -1,0 +1,42 @@
+spring:
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: user
+    password: password
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/KINGLBT/{application}
+          username: lmluomeng1992@163.com
+          password: luomeng0323
+          delete-untracked-branches: true
+          force-pull: true
+          skip-ssl-validation: true
+        health:
+          repositories:
+            springcloud-config-client-dev:
+              name: springcloud-config-client
+              profiles: dev
+  security:
+    user:
+      name: fykc
+      password: 12321
+server:
+  port: 8899
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://zytech:zytech2018@localhost:8081/eureka
+    #eureka.client.healthcheck.enabled=true should only be set in application.yml. Setting the value in bootstrap.yml
+    healthcheck:
+      enabled: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
