@@ -9,8 +9,8 @@ spring:
       server:
         git:
           uri: https://github.com/KINGLBT/{application}
-          username: lmluomeng1992@163.com
-          password: luomeng0323
+          username: user
+          password: password
           delete-untracked-branches: true
           force-pull: true
           skip-ssl-validation: true
