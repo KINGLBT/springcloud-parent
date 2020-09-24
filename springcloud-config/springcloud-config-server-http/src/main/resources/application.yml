@@ -8,8 +8,8 @@ spring:
           uri: https://github.com/KINGLBT/{application}
           skip-ssl-validation: true
           timeout: 10
-          username: lmluomeng1992@163.com
-          password: luomeng0323
+          username: user
+          password: password
           force-pull: true
           delete-untracked-branches: true
           refresh-rate: 0
